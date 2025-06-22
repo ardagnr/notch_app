@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDisplayName</key>
+    <string>NotchApp</string>
+    <key>CFBundleExecutable</key>
+    <string>NotchApp</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.notchapp.macos</string>
+    <key>CFBundleName</key>
+    <string>NotchApp</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>13.0</string>
+    <key>LSUIElement</key>
+    <true/>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>NotchApp needs access to control media playback and system functions.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>NotchApp may need microphone access for audio monitoring features.</string>
+    <key>NSUserNotificationsUsageDescription</key>
+    <string>NotchApp shows custom notifications in the notch area.</string>
+    <key>NSSystemExtensionUsageDescription</key>
+    <string>NotchApp needs system extension access for advanced media and volume control.</string>
+    <key>NSRemoteNotificationUsageDescription</key>
+    <string>NotchApp shows custom notifications and media controls.</string>
+    <key>NSAppleMusicUsageDescription</key>
+    <string>NotchApp needs access to Apple Music to show now playing information and controls.</string>
+    <key>NSMediaLibraryUsageDescription</key>
+    <string>NotchApp needs access to your media library to show now playing information.</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>NotchApp may use speech recognition for voice commands.</string>
+    <key>NSAccessibilityUsageDescription</key>
+    <string>NotchApp needs accessibility permissions to control system functions like volume and brightness.</string>
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.utilities</string>
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
+    <key>LSHasLocalizedDisplayName</key>
+    <false/>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSSupportsAutomaticGraphicsSwitching</key>
+    <true/>
+    <key>NSRequiresAquaSystemAppearance</key>
+    <false/>
+    <key>NSMainNibFile</key>
+    <string></string>
+    <key>NSMainStoryboardFile</key>
+    <string></string>
+</dict>
+</plist> 
