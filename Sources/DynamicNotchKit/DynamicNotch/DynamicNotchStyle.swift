@@ -42,7 +42,7 @@ public enum DynamicNotchStyle: Sendable {
     case auto
 
     /// A preset notch style, made to look good in most cases.
-    public static let notch: DynamicNotchStyle = .notch(topCornerRadius: 15, bottomCornerRadius: 20)
+    public static let notch: DynamicNotchStyle = .notch(topCornerRadius: 18, bottomCornerRadius: 24)
 
     /// A preset floating style, made to look good in most cases.
     public static let floating: DynamicNotchStyle = .floating(cornerRadius: 20)
@@ -65,18 +65,18 @@ public enum DynamicNotchStyle: Sendable {
 
     var openingAnimation: Animation {
         if isNotch {
-            .bouncy(duration: 0.4)
+            .spring(response: 0.6, dampingFraction: 0.8, blendDuration: 0.2)
         } else {
-            .snappy(duration: 0.4)
+            .spring(response: 0.5, dampingFraction: 0.75, blendDuration: 0.15)
         }
     }
 
     var closingAnimation: Animation {
-        .smooth(duration: 0.4)
+        .spring(response: 0.5, dampingFraction: 0.8, blendDuration: 0.1)
     }
 
     var conversionAnimation: Animation {
-        .snappy(duration: 0.4)
+        .spring(response: 0.4, dampingFraction: 0.7, blendDuration: 0.1)
     }
 }
 

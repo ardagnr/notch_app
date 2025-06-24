@@ -8,6 +8,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var mediaController: MediaController?
     private var volumeController: VolumeController?
     private var notchHoverController: NotchHoverController?
+    private var notificationController: NotificationController?
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Hide dock icon
@@ -59,6 +60,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         volumeItem.target = self
         menu.addItem(volumeItem)
         
+        // Test notification
+        let notificationItem = NSMenuItem(title: "🔔 Test Notification", action: #selector(testNotification), keyEquivalent: "")
+        notificationItem.target = self
+        menu.addItem(notificationItem)
+        
         // Force media update
         let mediaUpdateItem = NSMenuItem(title: "🎵 Force Media Update", action: #selector(forceMediaUpdate), keyEquivalent: "")
         mediaUpdateItem.target = self
@@ -95,6 +101,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             volumeController?.startMonitoring()
             print("🔊 Volume controller started")
         }
+        
+        // Initialize notification controller
+        notificationController = NotificationController()
+        setupNotificationObserver()
+        print("🔔 Notification controller started")
     }
     
     private func requestPermissions() {
@@ -104,6 +115,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // No need for AVAudioSession on macOS - audio routing is handled differently
         print("Audio configuration completed")
+    }
+    
+    private func setupNotificationObserver() {
+        // Bildirim geldiğinde çentikte göstermek için observer kur
+        NotificationCenter.default.addObserver(
+            forName: .notificationReceived,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            if let notificationData = notification.object as? NotificationData {
+                self?.notificationController?.showNotification(notificationData)
+            }
+        }
     }
     
     @objc private func statusItemClicked() {
@@ -126,9 +150,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         mediaController?.forceStatusUpdate()
     }
     
+    @objc private func testNotification() {
+        print("Testing notification manually...")
+        let testNotification = NotificationData(
+            title: "Test WhatsApp Mesajı",
+            subtitle: "",
+            body: "Bu bir test bildirimidir. Çentik düzgün çalışıyor mu?",
+            appName: "WhatsApp",
+            appBundleId: "net.whatsapp.WhatsApp"
+        )
+        notificationController?.showNotification(testNotification)
+    }
+    
     func applicationWillTerminate(_ aNotification: Notification) {
         mediaController?.stopMonitoring()
         volumeController?.stopMonitoring()
         notchHoverController?.stopHoverDetection()
+        notificationController?.stopMonitoring()
+        
+        // Notification observer'ı temizle
+        NotificationCenter.default.removeObserver(self, name: .notificationReceived, object: nil)
     }
 } 
