@@ -420,8 +420,14 @@ class MediaController: ObservableObject {
                 } else {
                     print("🎵 Expanded notch is open")
                 }
+            } else if playState == "paused" {
+                // Paused state - keep notch but update UI
+                print("⏸️ Music paused - keeping notch visible but updating state")
+                // Notch'u gizleme, sadece state'i güncelle
+                // NotchMaskView ve ExpandedMediaView otomatik olarak isPlaying değişikliğini görecek
             } else {
-                print("⏸️ Music paused - hiding notches")
+                // Stopped state - hide notch completely  
+                print("🛑 Music stopped - hiding notches")
                 self.hideNotch()
             }
         }
@@ -436,11 +442,9 @@ class MediaController: ObservableObject {
         }
         
         print("🎵 Showing compact notch")
-            compactNotch = DynamicNotch { [weak self] in
+            compactNotch = DynamicNotch {
                 NotchMaskView(
-                    track: self?.currentTrack,
-                    isPlaying: self?.isPlaying ?? false,
-                    artwork: self?.artwork,
+                    mediaController: self,
                     onHover: { [weak self] isHovered in
                         if isHovered {
                         print("🎵 Mouse entered NotchMask - switching to expanded")
@@ -557,27 +561,24 @@ class MediaController: ObservableObject {
         print("🎵 Creating compact notch")
         compactNotch = DynamicNotch(
             hoverBehavior: [.keepVisible],
-            style: .softNotch,
-            expanded: { [weak self] in
-                NotchMaskView(
-                    track: self?.currentTrack,
-                    isPlaying: self?.isPlaying ?? false,
-                    artwork: self?.artwork,
-                    onHover: { [weak self] isHovered in
-                        if isHovered {
-                            print("🎵 Mouse entered NotchMask")
-                            // Check if we can transition
-                            guard let self = self, !self.isTransitioning else {
-                                print("⚠️ Cannot switch - already transitioning")
-                                return
-                            }
-                            print("🔄 Switching to expanded")
-                            self.switchToExpanded()
+            style: .softNotch
+        ) {
+            NotchMaskView(
+                mediaController: self,
+                onHover: { [weak self] isHovered in
+                    if isHovered {
+                        print("🎵 Mouse entered NotchMask")
+                        // Check if we can transition
+                        guard let self = self, !self.isTransitioning else {
+                            print("⚠️ Cannot switch - already transitioning")
+                            return
                         }
+                        print("🔄 Switching to expanded")
+                        self.switchToExpanded()
                     }
-                )
-            }
-        )
+                }
+            )
+        }
         
         await compactNotch?.expand()
     }

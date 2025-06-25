@@ -1,9 +1,7 @@
 import SwiftUI
 
 struct NotchMaskView: View {
-    let track: MediaTrack?
-    let isPlaying: Bool
-    let artwork: NSImage?
+    @ObservedObject var mediaController: MediaController
     let onHover: (Bool) -> Void
     
     var body: some View {
@@ -11,7 +9,7 @@ struct NotchMaskView: View {
             // Sol taraf - Albüm kapağı (yanlara daha yakın)
             HStack {
                 Group {
-                    if let artwork = artwork {
+                    if let artwork = mediaController.artwork {
                         Image(nsImage: artwork)
                             .resizable()
                             .aspectRatio(1.0, contentMode: .fill) // Tam kare oranı
@@ -37,7 +35,7 @@ struct NotchMaskView: View {
             
             // Sağ taraf - Müzik durumu (yanlara daha yakın)
             HStack {
-                if isPlaying {
+                if mediaController.isPlaying {
                     // Option 1: Modern Waveform Indicator (daha büyük ve modern)
                     ModernWaveformIndicator()
                         .frame(width: 32, height: 16) // Daha büyük gösterge
@@ -188,13 +186,7 @@ struct ModernPulseIndicator: View {
 
 #Preview {
     NotchMaskView(
-        track: MediaTrack(
-            title: "Sample Song",
-            artist: "Sample Artist", 
-            album: "Sample Album"
-        ),
-        isPlaying: true,
-        artwork: nil,
+        mediaController: MediaController(),
         onHover: { _ in }
     )
     .padding()
