@@ -21,7 +21,7 @@
     <key>LSUIElement</key>
     <true/>
     <key>NSAppleEventsUsageDescription</key>
-    <string>NotchApp needs access to control media playback and system functions.</string>
+    <string>NotchApp needs access to control media playback, system functions, and read/write notes from the Notes app to display them in the notch.</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>NotchApp may need microphone access for audio monitoring features.</string>
     <key>NSUserNotificationsUsageDescription</key>

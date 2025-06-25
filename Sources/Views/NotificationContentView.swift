@@ -121,40 +121,7 @@ struct NotificationContentView: View {
         return "You have a new message"
     }
     
-    private func getContactInitials() -> String {
-        let contactName = getContactName()
-        
-        // İlk harfleri al
-        let words = contactName.split(separator: " ")
-        if words.count >= 2 {
-            // İki kelime varsa ilk harflerini al
-            return String(words[0].prefix(1) + words[1].prefix(1)).uppercased()
-        } else if !words.isEmpty {
-            // Tek kelime varsa ilk iki harfini al
-            return String(words[0].prefix(2)).uppercased()
-        }
-        
-        return "W" // Default WhatsApp
-    }
-    
-    private func getContactColor() -> Color {
-        let contactName = getContactName()
-        
-        // Kişi adına göre renk oluştur (basit hash benzeri algoritma)
-        let hash = contactName.hash
-        let colors: [Color] = [
-            Color(red: 0.9, green: 0.4, blue: 0.4), // Kırmızı
-            Color(red: 0.4, green: 0.8, blue: 0.4), // Yeşil
-            Color(red: 0.4, green: 0.6, blue: 0.9), // Mavi
-            Color(red: 0.9, green: 0.6, blue: 0.4), // Turuncu
-            Color(red: 0.8, green: 0.4, blue: 0.8), // Mor
-            Color(red: 0.4, green: 0.8, blue: 0.8), // Turkuaz
-            Color(red: 0.9, green: 0.8, blue: 0.4), // Sarı
-            Color(red: 0.6, green: 0.6, blue: 0.6), // Gri
-        ]
-        
-        return colors[abs(hash) % colors.count]
-    }
+    // Removed unused getContactInitials() and getContactColor() functions
     
     @ViewBuilder
     private func getAppIcon() -> some View {

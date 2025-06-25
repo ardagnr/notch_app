@@ -4,29 +4,71 @@ struct GeminiChatView: View {
     @ObservedObject var geminiController: GeminiController
     @State private var messageText = ""
     @FocusState private var isTextFieldFocused: Bool
+    var onMenuSelection: ((NotchMenuOption) -> Void)?
     
     var body: some View {
         VStack(spacing: 0) {
-            // Header
-            HStack {
-                Image(systemName: "sparkles")
-                    .foregroundColor(.blue)
-                    .font(.body)
-                
-                Text("Gemini AI")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundColor(.white)
+            // Top menu bar
+            HStack(spacing: 12) {
+                // Current notch indicator
+                HStack(spacing: 6) {
+                    Image(systemName: "sparkles")
+                        .foregroundColor(.blue)
+                        .font(.caption)
+                    
+                    Text("Gemini AI")
+                        .font(.caption.weight(.medium))
+                        .foregroundColor(.white.opacity(0.9))
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.white.opacity(0.1))
+                )
                 
                 Spacer()
                 
-                Button(action: {
-                    geminiController.clearChat()
-                }) {
-                    Image(systemName: "trash")
-                        .foregroundColor(.white.opacity(0.7))
-                        .font(.caption)
+                // Menu buttons
+                HStack(spacing: 8) {
+                    // Timer button
+                    Button(action: { onMenuSelection?(.timer) }) {
+                        Image(systemName: "timer")
+                            .foregroundColor(.orange)
+                            .font(.caption)
+                            .frame(width: 24, height: 24)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(Color.white.opacity(0.1))
+                            )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .help("Sayaç")
+                    
+                    // Notes button
+                    Button(action: { onMenuSelection?(.notes) }) {
+                        Image(systemName: "note.text")
+                            .foregroundColor(.yellow)
+                            .font(.caption)
+                            .frame(width: 24, height: 24)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(Color.white.opacity(0.1))
+                            )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .help("Notlar")
+                    
+                    // Clear chat button
+                    Button(action: { geminiController.clearChat() }) {
+                        Image(systemName: "trash")
+                            .foregroundColor(.white.opacity(0.7))
+                            .font(.caption)
+                            .frame(width: 24, height: 24)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .help("Sohbeti Temizle")
                 }
-                .buttonStyle(PlainButtonStyle())
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
@@ -114,13 +156,7 @@ struct GeminiChatView: View {
             .padding(.vertical, 8)
             .background(Color.black.opacity(0.15))
         }
-        .background(
-            // Basit renk - GPU tasarrufu için gradient yerine
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.black.opacity(0.85))
-
-        )
-        .frame(width: 380, height: 420)
+        .frame(width: 380, height: 380)
         .onAppear {
             isTextFieldFocused = true
         }

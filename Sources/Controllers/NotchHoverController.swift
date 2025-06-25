@@ -4,13 +4,21 @@ import DynamicNotchKit
 
 class NotchHoverController: ObservableObject {
     @Published var isHovering = false
-    @Published var isGeminiChatVisible = false
+    @Published var activeNotchType: NotchMenuOption?
     
     private var hoverDetectionTimer: Timer?
-    private var geminiNotch: DynamicNotch<AnyView, EmptyView, EmptyView>?
+    private var activeNotch: DynamicNotch<AnyView, EmptyView, EmptyView>?
+    
+    // Controllers for different notch types
     private let geminiController = GeminiController()
+    private let timerController = TimerController()
+    private let notesController = NotesController()
+    
     private var hoverStartTime: Date?
     private var exitStartTime: Date?
+    
+    // UserDefaults key for remembering last used notch
+    private let lastUsedNotchKey = "LastUsedNotchType"
     
     // Weak reference to media controller to check if music is playing
     weak var mediaController: MediaController?
@@ -22,7 +30,7 @@ class NotchHoverController: ObservableObject {
     
     private func startHoverDetection() {
         // Real-time hover detection için Timer gerekli (Background scheduler çok yavaş)
-        hoverDetectionTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] _ in
+        hoverDetectionTimer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             
             // Sadece Spotify track yoksa hover kontrolü yap - enerji tasarrufu
@@ -33,8 +41,6 @@ class NotchHoverController: ObservableObject {
             
             self.checkMousePosition()
         }
-        
-
     }
     
     private func checkMousePosition() {
@@ -87,8 +93,9 @@ class NotchHoverController: ObservableObject {
         let screenFrame = screen.frame
         
         // Çentik bölgesini hesapla (ekranın üst ortasında)
-        let notchWidth: CGFloat = 400  // Çentik genişliği
-        let notchHeight: CGFloat = 50  // Çentik yüksekliği
+        // Notch açıkken alanı büyüt, kapalıyken küçük tut
+        let notchWidth: CGFloat = activeNotch != nil ? 400 : 400
+        let notchHeight: CGFloat = activeNotch != nil ? 450 : 50  // Açıkken büyük alan
         
         let notchX = (screenFrame.width - notchWidth) / 2
         let notchY = screenFrame.height - notchHeight
@@ -112,56 +119,152 @@ class NotchHoverController: ObservableObject {
         }
         
         Task { @MainActor in
-            await self.showGeminiChatWindow()
+            await self.showLastUsedNotch()
         }
     }
     
     private func handleMouseExit() {
-        hideGeminiChat()
+        hideActiveNotch()
     }
     
     @MainActor
-    private func showGeminiChatWindow() async {
-        // Eğer zaten gösteriliyorsa, tekrar gösterme
-        guard geminiNotch == nil else { return }
+    private func showLastUsedNotch() async {
+        // Son kullanılan çentik tipini al, yoksa Gemini'yi default olarak kullan
+        let lastUsedRawValue = UserDefaults.standard.string(forKey: lastUsedNotchKey) ?? NotchMenuOption.gemini.rawValue
+        let lastUsedOption = NotchMenuOption.allCases.first { $0.rawValue == lastUsedRawValue } ?? .gemini
         
-        let chatView = GeminiChatView(geminiController: geminiController)
-        
-        geminiNotch = DynamicNotch(
-            hoverBehavior: [.keepVisible],
-            style: .notch(topCornerRadius: 15, bottomCornerRadius: 20)
-        ) {
-            AnyView(chatView)
-        }
-        
-        await geminiNotch?.expand()
-        
-        isGeminiChatVisible = true
+        await showNotchForOption(lastUsedOption)
     }
     
-    private func hideGeminiChat() {
-        guard let notch = geminiNotch else { return }
+    @MainActor
+    private func handleMenuSelection(_ option: NotchMenuOption) async {
+        print("🎯 Menu option selected: \(option.rawValue)")
+        
+        // Show selected notch type
+        await showNotchForOption(option)
+    }
+    
+    @MainActor
+    private func showNotchForOption(_ option: NotchMenuOption) async {
+        // Eğer zaten bir notch açıksa, önce onu kapat
+        if activeNotch != nil {
+            await forceHideActiveNotch()
+            try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 saniye bekle
+        }
+        
+        // Son kullanılan çentik tipini kaydet
+        UserDefaults.standard.set(option.rawValue, forKey: lastUsedNotchKey)
+        
+        let contentView: AnyView
+        
+        switch option {
+        case .gemini:
+            let geminiView = GeminiChatView(
+                geminiController: geminiController,
+                onMenuSelection: { [weak self] newOption in
+                    Task { @MainActor in
+                        await self?.handleMenuSelection(newOption)
+                    }
+                }
+            )
+            contentView = AnyView(geminiView)
+            
+        case .timer:
+            let timerView = TimerNotchView(
+                timerController: timerController,
+                onMenuSelection: { [weak self] newOption in
+                    Task { @MainActor in
+                        await self?.handleMenuSelection(newOption)
+                    }
+                }
+            )
+            contentView = AnyView(timerView)
+            
+        case .notes:
+            let notesView = NotesNotchView(
+                notesController: notesController,
+                onMenuSelection: { [weak self] newOption in
+                    Task { @MainActor in
+                        await self?.handleMenuSelection(newOption)
+                    }
+                }
+            )
+            contentView = AnyView(notesView)
+        }
+        
+        activeNotch = DynamicNotch(
+            hoverBehavior: [], // Hover behavior'u kapat - manuel kontrol kullanacağız
+            style: .notch(topCornerRadius: 15, bottomCornerRadius: 20)
+        ) {
+            contentView
+        }
+        
+        await activeNotch?.expand()
+        activeNotchType = option
+        
+        // Not needed anymore - using manual hover detection
+        
+        print("✅ Showing \(option.rawValue) notch")
+    }
+    
+    private func hideActiveNotch() {
+        guard let notch = activeNotch else { return }
         
         Task {
             await notch.hide()
             await MainActor.run {
-                self.geminiNotch = nil
-                self.isGeminiChatVisible = false
+                self.activeNotch = nil
+                self.activeNotchType = nil
             }
         }
+    }
+    
+    // Notch'u force olarak kapat (menü değişimi için)
+    @MainActor
+    private func forceHideActiveNotch() async {
+        guard let notch = activeNotch else { return }
+        
+        await notch.hide()
+        self.activeNotch = nil
+        self.activeNotchType = nil
     }
     
     func stopHoverDetection() {
         hoverDetectionTimer?.invalidate()
         hoverDetectionTimer = nil
-        hideGeminiChat()
+        hideActiveNotch()
     }
     
-    // Test function to manually show Gemini chat
+    // Test function to manually show last used notch
+    func forceShowLastUsed() {
+        Task { @MainActor in
+            await self.showLastUsedNotch()
+        }
+    }
+    
+    // Direct access functions for testing specific notches
     func forceShowGeminiChat() {
         Task { @MainActor in
-            await self.showGeminiChatWindow()
+            await self.showNotchForOption(.gemini)
         }
+    }
+    
+    func forceShowTimer() {
+        Task { @MainActor in
+            await self.showNotchForOption(.timer)
+        }
+    }
+    
+    func forceShowNotes() {
+        Task { @MainActor in
+            await self.showNotchForOption(.notes)
+        }
+    }
+    
+    private func monitorNotchHoverState() {
+        // DynamicNotch'un built-in hover sistemi kullanacağız
+        // Sadece bir delay ekleyerek hover'dan çıktıktan sonra kapanacak
+        print("📱 Monitoring notch hover state with built-in system")
     }
     
     deinit {

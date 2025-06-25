@@ -49,8 +49,8 @@ class VolumeController: ObservableObject, Sendable {
             object: nil
         )
         
-        // Add a fast polling mechanism for instant response to volume key presses
-        Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] timer in
+        // Optimized polling mechanism - reduced frequency for better performance
+        Timer.scheduledTimer(withTimeInterval: 0.33, repeats: true) { [weak self] timer in
             guard let self = self else {
                 timer.invalidate()
                 return

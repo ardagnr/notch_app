@@ -27,7 +27,7 @@ class NotificationController: ObservableObject {
     init() {
         setupAccessibilityPermissions()
         setupWorkspaceObserver()
-        setupDistributedNotificationObserver()
+        // setupDistributedNotificationObserver() removed - not working effectively
     }
     
     deinit {
@@ -60,7 +60,7 @@ class NotificationController: ObservableObject {
     private func setupAccessibilityPermissions() {
         // Accessibility izinlerini kontrol et
         let trusted = AXIsProcessTrusted()
-        debugLog("🔒 Accessibility permissions trusted: \(trusted)")
+        print("🔒 Accessibility permissions trusted: \(trusted)")
         
         if !trusted {
             print("🔑 Requesting accessibility permissions...")
@@ -126,14 +126,13 @@ class NotificationController: ObservableObject {
             object: nil
         )
         
-        // Distributed notification observer'ları temizle
-        DistributedNotificationCenter.default.removeObserver(self)
+        // Distributed notification observer cleanup removed
         
         print("🛑 Notification monitoring stopped")
     }
     
     private func setupAXObserver() {
-        debugLog("🔧 Setting up AXObserver with simplified approach...")
+        print("🔧 Setting up AXObserver with simplified approach...")
         
         // Her çalışan uygulama için observer kur
         let runningApps = NSWorkspace.shared.runningApplications
@@ -163,7 +162,7 @@ class NotificationController: ObservableObject {
     }
     
     private func setupObserverForApp(pid: pid_t, bundleId: String) {
-        debugLog("🔧 Setting up observer for \(bundleId) (PID: \(pid))")
+        print("🔧 Setting up observer for \(bundleId) (PID: \(pid))")
         
         let appElement = AXUIElementCreateApplication(pid)
         
@@ -172,7 +171,7 @@ class NotificationController: ObservableObject {
         let result = AXObserverCreate(pid, axObserverCallback, &observer)
         
         guard result == .success, let observer = observer else {
-            debugLog("⚠️ Could not create observer for \(bundleId): \(result.rawValue)")
+            print("⚠️ Could not create observer for \(bundleId): \(result.rawValue)")
             return
         }
         
@@ -193,7 +192,7 @@ class NotificationController: ObservableObject {
         if addResult == .success {
             print("✅ Successfully added window observer for: \(bundleId)")
         } else {
-            debugLog("⚠️ Failed to add window observer for \(bundleId): \(addResult.rawValue)")
+            print("⚠️ Failed to add window observer for \(bundleId): \(addResult.rawValue)")
         }
     }
     
@@ -223,21 +222,7 @@ private func axObserverCallback(
     }
 }
 
-// Global debug functions
-private let debugMode: Bool = false
-private let verboseMode: Bool = false
-
-private func debugLog(_ message: String) {
-    if debugMode {
-        print(message)
-    }
-}
-
-private func verboseLog(_ message: String) {
-    if verboseMode {
-        print(message)
-    }
-}
+// Debug functions removed - use print directly for important messages
 
 private func processNotificationElement(_ element: AXUIElement) {
     // Element'in bir bildirim olup olmadığını kontrol et
@@ -271,14 +256,14 @@ private func isNotificationElement(_ element: AXUIElement) -> Bool {
         
         if subroleResult == .success,
            let subrole = subroleValue as? String {
-            verboseLog("🏷️ Element subrole: \(subrole)")
+            // Subrole checking
             // Sistem bildirim pencereleri
             if subrole == kAXSystemDialogSubrole || 
                subrole == kAXFloatingWindowSubrole ||
                subrole == "AXNotificationCenterBanner" ||
                subrole.contains("Banner") ||
                subrole.contains("Notification") {
-                debugLog("🎯 Found notification by subrole: \(subrole)")
+                print("🎯 Found notification by subrole: \(subrole)")
                 return true
             }
         }
@@ -289,11 +274,11 @@ private func isNotificationElement(_ element: AXUIElement) -> Bool {
         
         if titleResult == .success,
            let title = titleValue as? String {
-            verboseLog("📝 Checking title: '\(title)'")
+            // Title checking
             
             // Ana WhatsApp penceresi değilse ve WhatsApp içeriyorsa
             if title.localizedCaseInsensitiveContains("whatsapp") && title != "‎WhatsApp" {
-                debugLog("🎯 Found WhatsApp notification window: '\(title)'")
+                print("🎯 Found WhatsApp notification window: '\(title)'")
                 return true
             }
             
@@ -301,7 +286,7 @@ private func isNotificationElement(_ element: AXUIElement) -> Bool {
             if title.contains(":") || title.contains("New message") || 
                title.localizedCaseInsensitiveContains("message") ||
                title.localizedCaseInsensitiveContains("notification") {
-                debugLog("🎯 Found notification by content pattern: '\(title)'")
+                print("🎯 Found notification by content pattern: '\(title)'")
                 return true
             }
         }
@@ -314,7 +299,7 @@ private func isNotificationElement(_ element: AXUIElement) -> Bool {
             let success = AXValueGetValue(positionData as! AXValue, .cgPoint, &point)
             
             if success {
-                verboseLog("📍 Element position: \(point)")
+                // Position checking
                 
                 // Ekranın üst 300 piksel alanında olan pencereler bildirim olabilir (daha esnek)
                 if point.y < 300 {
@@ -326,18 +311,18 @@ private func isNotificationElement(_ element: AXUIElement) -> Bool {
                         let sizeSuccess = AXValueGetValue(sizeData as! AXValue, .cgSize, &size)
                         
                         if sizeSuccess {
-                            verboseLog("📏 Element size: \(size)")
+                            // Size checking
                             // Bildirim boyutları (daha esnek aralık)
                             if size.width > 150 && size.width < 600 && 
                                size.height > 30 && size.height < 200 {
-                                debugLog("🎯 Found notification by position/size")
+                                print("🎯 Found notification by position/size")
                                 return true
                             }
                         }
                     }
                 } else if point.y >= 0 && point.y < 600 {
                     // Bildirimlerin farklı pozisyonlarda da olabileceğini düşün
-                    verboseLog("🔍 Element in potential notification area")
+                    // Element in potential notification area
                     
                     // Title'da bildirim ipucu var mı kontrol et
                     var titleValue: CFTypeRef?
@@ -346,7 +331,7 @@ private func isNotificationElement(_ element: AXUIElement) -> Bool {
                         if title.localizedCaseInsensitiveContains("whatsapp") ||
                            title.localizedCaseInsensitiveContains("message") ||
                            title.localizedCaseInsensitiveContains("notification") {
-                            debugLog("🎯 Found notification by alternative position + title")
+                            print("🎯 Found notification by alternative position + title")
                             return true
                         }
                     }
@@ -363,21 +348,24 @@ private func extractNotificationData(from element: AXUIElement) -> NotificationD
     var body = ""
     var appName = ""
     
-    verboseLog("🔍 Starting deep notification content extraction...")
+    // Duplicate prevention için set
+    var processedTexts = Set<String>()
+    
+    // Starting notification content extraction
     
     // Önce element'in title'ını kontrol et
     var elementTitleValue: CFTypeRef?
     if AXUIElementCopyAttributeValue(element, kAXTitleAttribute as CFString, &elementTitleValue) == .success,
        let elementTitle = elementTitleValue as? String {
-        verboseLog("📋 Main element title: '\(elementTitle)'")
+        // Main element title check
         if elementTitle != "Notification Center" {
             title = elementTitle
         }
     }
     
-    // Çocuk elementleri tara - tüm seviyeler
+    // Çocuk elementleri tara - optimized depth limit
     func extractFromChildren(_ parent: AXUIElement, depth: Int = 0) {
-        guard depth < 5 else { return } // Maksimum 5 seviye derinlik
+        guard depth < 3 else { return } // Reduced to 3 levels for better performance
         
         var childrenValue: CFTypeRef?
         let childrenResult = AXUIElementCopyAttributeValue(parent, kAXChildrenAttribute as CFString, &childrenValue)
@@ -385,17 +373,17 @@ private func extractNotificationData(from element: AXUIElement) -> NotificationD
         guard childrenResult == .success,
               let children = childrenValue as? [AXUIElement] else { return }
         
-        verboseLog("🔍 Level \(depth): Found \(children.count) children")
+        // Level \(depth): Found \(children.count) children
         
         for (index, child) in children.enumerated() {
-            guard index < 20 else { break } // Maksimum 20 çocuk kontrol et
+            guard index < 10 else { break } // Reduced to 10 children for better performance
             
             // Role kontrol et
             var roleValue: CFTypeRef?
             let roleResult = AXUIElementCopyAttributeValue(child, kAXRoleAttribute as CFString, &roleValue)
             
             if roleResult == .success, let role = roleValue as? String {
-                verboseLog("📋 Child \(index) role: \(role)")
+                // Child \(index) role: \(role)
                 
                 // Tüm possible attribute'ları kontrol et
                 func extractAllPossibleText(from element: AXUIElement) {
@@ -411,7 +399,7 @@ private func extractNotificationData(from element: AXUIElement) -> NotificationD
                         var result: CFTypeRef?
                                                 if AXUIElementCopyAttributeValue(element, attribute as CFString, &result) == .success,
                            let text = result as? String, !text.isEmpty && text != "Notification Center" {
-                            verboseLog("📝 Found text from \(attribute): '\(text)'")
+                            // Found text from \(attribute)
                              
                              // macOS sistem metinlerini filtrele
                              let systemTexts = [
@@ -424,23 +412,29 @@ private func extractNotificationData(from element: AXUIElement) -> NotificationD
                              }
                              
                              if isSystemText {
-                                 verboseLog("🚫 Skipping system text: '\(text)'")
+                                 // Skipping system text
                                  continue
                              }
                              
                              // WhatsApp style description parsing (örn: "WhatsApp, Annem, Deneme 7")
                              if text.contains(",") && text.localizedCaseInsensitiveContains("whatsapp") {
-                                 let parts = text.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-                                 if parts.count >= 3 {
-                                     // parts[0] = "WhatsApp", parts[1] = "Annem", parts[2] = "Deneme 7"
-                                     appName = parts[0]
-                                     if title.isEmpty {
-                                         title = parts[1] // Gönderen kişi
+                                 // Duplicate prevention için kontrol et
+                                 let normalizedText = text.trimmingCharacters(in: .whitespaces).lowercased()
+                                 if !processedTexts.contains(normalizedText) {
+                                     processedTexts.insert(normalizedText)
+                                     
+                                     let parts = text.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+                                     if parts.count >= 3 {
+                                         // parts[0] = "WhatsApp", parts[1] = "Annem", parts[2] = "Deneme 7"
+                                         appName = parts[0]
+                                         if title.isEmpty {
+                                             title = parts[1] // Gönderen kişi
+                                         }
+                                         if body.isEmpty {
+                                             body = parts[2] // Mesaj içeriği
+                                         }
+                                         print("🎯 Parsed WhatsApp format - App: '\(parts[0])', Sender: '\(parts[1])', Message: '\(parts[2])'")
                                      }
-                                     if body.isEmpty {
-                                         body = parts[2] // Mesaj içeriği
-                                     }
-                                     debugLog("🎯 Parsed WhatsApp format - App: '\(parts[0])', Sender: '\(parts[1])', Message: '\(parts[2])'")
                                  }
                              }
                              // WhatsApp ve diğer app isimleri
@@ -454,17 +448,17 @@ private func extractNotificationData(from element: AXUIElement) -> NotificationD
                              // Kişi adları (genelde kısa, özel karakterler içermez)
                              else if text.count > 1 && text.count <= 20 && !text.contains(" ") && title.isEmpty {
                                  title = text
-                                 verboseLog("🧑 Found contact name: '\(text)'")
+                                 // Found contact name
                              }
                              // Mesaj içeriği (orta uzunlukta metinler)
                              else if text.count > 1 && text.count <= 100 && body.isEmpty && !title.isEmpty {
                                  body = text
-                                 verboseLog("💬 Found message content: '\(text)'")
+                                 // Found message content
                              }
                              // Uzun metinler muhtemelen içerik
                              else if text.count > 10 && body.isEmpty {
                                  body = text
-                                 verboseLog("📝 Found long content: '\(text)'")
+                                 // Found long content
                              }
                         }
                     }
@@ -475,13 +469,13 @@ private func extractNotificationData(from element: AXUIElement) -> NotificationD
                 
                 // Eğer ScrollArea ise özel olarak content'ini kontrol et
                 if role == "AXScrollArea" {
-                    verboseLog("🔍 Special handling for AXScrollArea")
+                    // Special handling for AXScrollArea
                     
                     // ScrollArea'nın içindeki content'i kontrol et
                     var contentsValue: CFTypeRef?
                     if AXUIElementCopyAttributeValue(child, "AXContents" as CFString, &contentsValue) == .success,
                        let contents = contentsValue as? [AXUIElement] {
-                        verboseLog("📜 ScrollArea has \(contents.count) contents")
+                        // ScrollArea has \(contents.count) contents
                         for content in contents.prefix(10) {
                             extractAllPossibleText(from: content)
                             extractFromChildren(content, depth: depth + 1)
@@ -499,7 +493,7 @@ private func extractNotificationData(from element: AXUIElement) -> NotificationD
                     for scrollAttr in scrollAttributes {
                         var scrollResult: CFTypeRef?
                         if AXUIElementCopyAttributeValue(child, scrollAttr as CFString, &scrollResult) == .success {
-                            verboseLog("📜 Found scroll attribute: \(scrollAttr)")
+                            // Found scroll attribute
                             if let scrollElements = scrollResult as? [AXUIElement] {
                                 for scrollElement in scrollElements.prefix(5) {
                                     extractAllPossibleText(from: scrollElement)
@@ -522,7 +516,7 @@ private func extractNotificationData(from element: AXUIElement) -> NotificationD
     // Extraction başlat
     extractFromChildren(element)
     
-    debugLog("🔍 Extraction complete - Title: '\(title)', Body: '\(body)', App: '\(appName)'")
+    print("🔍 Extraction complete - Title: '\(title)', Body: '\(body)', App: '\(appName)'")
     
     // Eğer hiçbir şey bulunamadıysa, default WhatsApp bilgisi ver (çünkü WhatsApp bildirimi yakalandı)
     if title.isEmpty && body.isEmpty && appName.isEmpty {
@@ -599,7 +593,7 @@ extension NotificationController {
         }
         
         isShowingNotification = true
-        debugLog("📱 Displaying notification: \(notification.appName) - \(notification.title)")
+        print("📱 Displaying notification: \(notification.appName) - \(notification.title)")
     }
     
     // MARK: - Workspace Observer
@@ -655,54 +649,7 @@ extension NotificationController {
     
     
      
-     // MARK: - Distributed Notifications
-     private func setupDistributedNotificationObserver() {
-         // macOS sistem bildirimlerini dinle
-         let distributedCenter = DistributedNotificationCenter.default
-         
-         let notificationNames = [
-             "com.apple.coredata.ubiquity.ubiquitous_content_updated",
-             "com.apple.UserNotificationCenter.notification-posted",
-             "com.apple.UserNotificationCenter.notification-received",
-             "NSUserNotificationDidActivate",
-             "NSUserNotificationDidDeliverNotification",
-             "AppleShowAllNotifications",
-             "AppleHideAllNotifications"
-         ]
-         
-         for name in notificationNames {
-             distributedCenter.addObserver(
-                 forName: NSNotification.Name(name),
-                 object: nil,
-                 queue: .main
-             ) { [weak self] notification in
-                 if let notification = notification as? NSNotification {
-                     self?.handleDistributedNotification(notification)
-                 }
-             }
-         }
-         
-         debugLog("🔔 Distributed notification observers set up")
-     }
-     
-     private func handleDistributedNotification(_ notification: NSNotification) {
-         debugLog("📩 Processing distributed notification: \(notification.name.rawValue)")
-         
-         if let userInfo = notification.userInfo {
-             verboseLog("📋 UserInfo: \(userInfo)")
-         }
-         
-         // Basit bildirim oluştur
-         let notificationData = NotificationData(
-             title: "System Notification",
-             subtitle: "",
-             body: "A system notification was detected",
-             appName: "System",
-             appBundleId: nil
-         )
-         
-         showNotification(notificationData)
-     }
+         // MARK: - Distributed Notifications (removed - not working effectively)
      
      @MainActor
     private func handleApplicationLaunch(_ notification: Notification) {
@@ -710,7 +657,7 @@ extension NotificationController {
         
         if let bundleId = app.bundleIdentifier,
            bundleId.contains("notification") || bundleId.contains("Notification") {
-            debugLog("🚀 Notification-related app launched: \(app.localizedName ?? bundleId)")
+            print("🚀 Notification-related app launched: \(app.localizedName ?? bundleId)")
         }
     }
     

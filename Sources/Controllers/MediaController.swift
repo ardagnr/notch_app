@@ -236,15 +236,15 @@ class MediaController: ObservableObject {
     }
     
     private func startBackupMonitoring() {
-        // Media monitoring için Timer - real-time response gerekli
-        Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { [weak self] _ in
+        // Optimized backup monitoring - reduced to essential checks only
+        Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { [weak self] _ in
             guard let self = self, self.spotifyIsRunning else { return }
             
-            // Her durumda kontrol et - media değişikliklerini kaçırma
-            self.checkSpotifyStatusSilently()
+            // Only backup check if no current track or discrepancy detected
+            if self.currentTrack == nil || !self.isPlaying {
+                self.checkSpotifyStatusSilently()
+            }
         }
-        
-
     }
     
     private func checkSpotifyStatusSilently() {
