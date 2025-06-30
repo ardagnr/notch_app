@@ -16,7 +16,12 @@
 
 ## Neden NotchApp?
 
-MacBook'lardaki çentik alanı genellikle fiziksel bir çentik alanı olarak durur. NotchApp, bu alanı yeniden hayal ederek, onu sadece estetik bir unsur olmaktan çıkarıp, günlük iş akışlarınızı hızlandıran ve bağlamsal bilgi sunan üretken bir araca dönüştürür. Apple'ın "Dynamic Island" felsefesinden ilham alarak, bu güçlü konsepti macOS'e taşıyoruz. Rakiplerinden ayrılmış en güçlü özelliği ise çentikte bulunan bir yapay zeka yardımıyla kullanıcıların yapay zekayla etkileşim içine girmesidir.
+MacBook'lardaki çentik alanı genellikle fiziksel bir çentik alanı olarak durur ve hiçbir işlevi bulunmaz. 
+<p align="center">
+  <img src="assets/screenshot-7.png" alt="Gemini Sohbet" width="260">
+</p>
+NotchApp, bu alanı yeniden hayal ederek, onu sadece estetik bir unsur olmaktan çıkarıp, günlük iş akışlarınızı hızlandıran ve bağlamsal bilgi sunan üretken bir araca dönüştürür. Apple'ın "Dynamic Island" felsefesinden ilham alarak, bu güçlü konsepti macOS'e taşıyoruz. Rakiplerinden ayrılmış en güçlü özelliği ise çentikte bulunan bir yapay zeka yardımıyla kullanıcıların yapay zekayla etkileşim içine girmesidir.
+
 
 ## ⚙️ Derinlemesine Özellikler
 
